@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    container_name: kotak-neo-app
+    ports:
+      - "8081:8081"
+    environment:
+      - TZ=Asia/Kolkata
+      - SPRING_DATASOURCE_URL=jdbc:mysql://172.17.0.1:3306/kotakNeo?allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=kotak-user-2
+      - SPRING_DATASOURCE_PASSWORD=Hello123#
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQL8Dialect
+
+

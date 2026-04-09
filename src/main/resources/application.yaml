@@ -1,0 +1,17 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: kotakNeo
+  datasource:
+    url: jdbc:mysql://localhost:3306/kotakNeo
+    username: root
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver # Use cj for modern MySQL drivers
+  jpa:
+    hibernate:
+      ddl-auto: update # Options: none, update, create, create-drop, validate
+    show-sql: true
+    generate-ddl: true
+

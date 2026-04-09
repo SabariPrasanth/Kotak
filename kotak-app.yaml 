@@ -1,0 +1,42 @@
+piVersion: v1
+kind: Service
+metadata:
+  name: kotak-neo-service
+spec:
+  selector:
+    app: kotak-neo
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8081
+  type: NodePort
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kotak-neo-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kotak-neo
+  template:
+    metadata:
+      labels:
+        app: kotak-neo
+    spec:
+      containers:
+      - name: kotak-neo-app
+        image: kotak-neo:latest       # This must match the name you used in 'docker build'
+        imagePullPolicy: Never        # CRITICAL: Tells K8s NOT to look at Docker Hub
+        ports:
+        - containerPort: 8081
+        env:
+        - name: SPRING_DATASOURCE_URL
+          # Use the Minikube host bridge IP
+          value: "jdbc:mysql://192.168.49.1:3306/kotakNeo?allowPublicKeyRetrieval=true&useSSL=false"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "kotak-user-2"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "Hello123#"
+        # ... keep other env variables (TZ, Dialect, etc.) from previous example
