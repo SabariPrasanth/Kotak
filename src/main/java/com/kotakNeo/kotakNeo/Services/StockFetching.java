@@ -1,6 +1,7 @@
 package com.kotakNeo.kotakNeo.Services;
 
 import com.kotakNeo.kotakNeo.entities.DataPackOne;
+import com.kotakNeo.kotakNeo.model.PredictionResponse;
 import com.kotakNeo.kotakNeo.model.StockQuote;
 import com.kotakNeo.kotakNeo.repositories.DataPackOneRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,17 +48,17 @@ public class StockFetching {
         String url3 = baseUrl + "/script-details/1.0/quotes/neosymbol/"
                 + "nse_cm|1594,bse_cm|500209,"
                 + "nse_cm|11536,bse_cm|532540,"
-                + "nse_cm|10570,bse_cm|500570,"
-                + "nse_cm|13538,bse_cm|544569,"
+                + "nse_cm|3456,bse_cm|500570,"
+                + "nse_cm|759782,bse_cm|544569,"
                 + "nse_cm|881,bse_cm|500124,"
                 + "nse_cm|694,bse_cm|500087,"
-                + "nse_cm|13221,bse_cm|532218,"
-                + "nse_cm|1508,bse_cm|507685,"
-                + "nse_cm|10666,bse_cm|532652,"
-                + "nse_cm|12426,bse_cm|543596,"
-                + "nse_cm|12332,bse_cm|523323,"
+                + "nse_cm|5948,bse_cm|532218,"
+                + "nse_cm|3787,bse_cm|507685,"
+                + "nse_cm|8054,bse_cm|532652,"
+                + "nse_cm|10945,bse_cm|543596,"
+                + "nse_cm|5192,bse_cm|523323,"
                 + "nse_cm|1660,bse_cm|500875,"
-                + "nse_cm|2276,bse_cm|524816/all";
+                + "nse_cm|3918,bse_cm|524816/all";
         HttpHeaders newHeader = new HttpHeaders();
        newHeader.set("Authorization", "78c450a5-ff8a-4f98-9077-680a8c0968ac");
        HttpEntity<String> entity = new HttpEntity<>(newHeader);
@@ -68,8 +69,10 @@ public class StockFetching {
         LocalTime marketStart = LocalTime.of(9, 15);
         sb.setLength(0); // clear previous results
         for (StockQuote quote : response.getBody()) {
-            if(quote.getDisplaySymbol().toString().equals("SOUTHBANK") && LocalTime.now().isBefore(marketClose)
-                && LocalTime.now().isAfter(marketStart)){
+//            if(quote.getDisplaySymbol().toString().equals("SOUTHBANK") && LocalTime.now().isBefore(marketClose)
+//                && LocalTime.now().isAfter(marketStart)){
+            if(LocalTime.now().isBefore(marketClose)
+                    && LocalTime.now().isAfter(marketStart)){
                 System.out.println("print DB "+ quote.getDisplaySymbol());
                 DataPackOne dataPackOne = new DataPackOne();
                 dataPackOne.setCreatedDate(Date.valueOf(LocalDate.now()));
@@ -87,8 +90,30 @@ public class StockFetching {
             } else if (2*Integer.valueOf(quote.getTotalSell()) < Integer.valueOf(quote.getTotalBuy())) {
                 sb.append(quote.getDisplaySymbol()).append("  need to buy");
             }
+
+            RestTemplate restTemplate = new RestTemplate();
+
+            // Example path variables
+            String stockName = quote.getDisplaySymbol().toString();
+            double differences = (Double.parseDouble(quote.getTotalBuy()) -
+                    Double.parseDouble(quote.getTotalSell()));
+            int buyQty = Integer.parseInt(quote.getTotalBuy());
+            int sellQty = Integer.parseInt(quote.getTotalSell());
+
+            // Build URL with path variables
+            String url = String.format(
+                    "http://localhost:5000/predict/%s/%.2f/%d/%d",
+                    stockName, differences, buyQty, sellQty
+            );
+
+
+            PredictionResponse predictionResponse =
+                    restTemplate.getForObject(url, PredictionResponse.class);
+
+            assert predictionResponse != null;
             sb.append(quote.getDisplaySymbol()).append("  ")
                     .append(quote.getLtp()).append("  ")
+                    .append(predictionResponse.getPredicted_price()).append("  ")
                     .append(quote.getTotalBuy()).append("  ")
                     .append(quote.getTotalSell()).append("  ")
                     .append(quote.getOhlc().getLow()).append("  ")
