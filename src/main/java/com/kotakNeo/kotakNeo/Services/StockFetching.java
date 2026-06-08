@@ -1,9 +1,11 @@
 package com.kotakNeo.kotakNeo.Services;
 
 import com.kotakNeo.kotakNeo.entities.DataPackOne;
+import com.kotakNeo.kotakNeo.entities.GapWithPredictionAndActualPrice;
 import com.kotakNeo.kotakNeo.model.PredictionResponse;
 import com.kotakNeo.kotakNeo.model.StockQuote;
 import com.kotakNeo.kotakNeo.repositories.DataPackOneRepository;
+import com.kotakNeo.kotakNeo.repositories.GapWithPredictionAndActualPriceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -24,7 +26,8 @@ import java.time.ZoneId;
 public class StockFetching {
     @Autowired
     private DataPackOneRepository dataPackOneRepository;
-
+    @Autowired
+    private GapWithPredictionAndActualPriceRepository gapWithPredictionAndActualPriceRepository;
     private final RestTemplate restTemplate = new RestTemplate();
     private static StringBuilder sb = new StringBuilder();
     private static String baseUrl; // dynamic, set externally
@@ -109,7 +112,13 @@ public class StockFetching {
 
             PredictionResponse predictionResponse =
                     restTemplate.getForObject(url, PredictionResponse.class);
-
+            GapWithPredictionAndActualPrice gapWithPredictionAndActualPrice = new GapWithPredictionAndActualPrice();
+            gapWithPredictionAndActualPrice.setPrice(quote.getLtp());
+            gapWithPredictionAndActualPrice.setPredicted_price(predictionResponse.getPredicted_price());
+            gapWithPredictionAndActualPrice.setStock_name(quote.getDisplaySymbol());
+            gapWithPredictionAndActualPrice.setCreatedDate(Date.valueOf(LocalDate.now()));
+            gapWithPredictionAndActualPrice.setCreatedTime(Time.valueOf(LocalTime.now()));
+            gapWithPredictionAndActualPriceRepository.save(gapWithPredictionAndActualPrice);
             assert predictionResponse != null;
             sb.append(quote.getDisplaySymbol()).append("  ")
                     .append(quote.getLtp()).append("  ")
