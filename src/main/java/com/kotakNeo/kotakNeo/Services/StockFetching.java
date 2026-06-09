@@ -120,7 +120,10 @@ public class StockFetching {
             gapWithPredictionAndActualPrice.setStock_name(quote.getDisplaySymbol());
             gapWithPredictionAndActualPrice.setCreatedDate(Date.valueOf(LocalDate.now()));
             gapWithPredictionAndActualPrice.setCreatedTime(Time.valueOf(LocalTime.now()));
-            gapWithPredictionAndActualPriceRepository.save(gapWithPredictionAndActualPrice);
+            if(LocalTime.now().isBefore(marketClose)
+                    && LocalTime.now().isAfter(marketStart)) {
+                gapWithPredictionAndActualPriceRepository.save(gapWithPredictionAndActualPrice);
+            }
             assert predictionResponse != null;
             sb.append(quote.getDisplaySymbol()).append("  ")
                     .append(quote.getLtp()).append("  ")
