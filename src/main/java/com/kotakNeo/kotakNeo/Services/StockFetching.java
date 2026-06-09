@@ -89,9 +89,11 @@ public class StockFetching {
                dataPackOneRepository.save(dataPackOne);
             }
             if(Integer.valueOf(quote.getTotalSell())> 2*Integer.valueOf(quote.getTotalBuy())){
-                sb.append(quote.getDisplaySymbol()).append("  need to sell");
+                int X = (Integer.valueOf(quote.getTotalSell())/Integer.valueOf(quote.getTotalBuy()));
+                sb.append(quote.getDisplaySymbol()).append("  need to sell "+ X+"x ");
             } else if (2*Integer.valueOf(quote.getTotalSell()) < Integer.valueOf(quote.getTotalBuy())) {
-                sb.append(quote.getDisplaySymbol()).append("  need to buy");
+                int X = (Integer.valueOf(quote.getTotalBuy())/Integer.valueOf(quote.getTotalSell()));
+                sb.append(quote.getDisplaySymbol()).append("  need to buy "+X+"x ");
             }
 
             RestTemplate restTemplate = new RestTemplate();
