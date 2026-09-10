@@ -30,5 +30,10 @@ public class DataPackOne {
     private double differences;
     @NonNull
     private String price;
-
+    @NonNull
+    private String open;
+    @NonNull
+    private String low;
+    @NonNull
+    private String high;
 }

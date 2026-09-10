@@ -33,7 +33,7 @@ public class StockFetching {
     private static String baseUrl; // dynamic, set externally
 
     // Call this from your controller or service to set baseUrl dynamically
-    public void callFetchStock(String url) {
+    public void callFetchStock(String url) throws Exception {
         baseUrl = url;   // set the dynamic base URL
         fetch();         // trigger immediately
 
@@ -43,7 +43,7 @@ public class StockFetching {
     }
     // Scheduled job runs every second, no arguments allowed
     @Scheduled(fixedRate = 15*60*1000)
-    public void fetch() {
+    public void fetch() throws Exception{
         if (baseUrl == null || baseUrl.isBlank()) {
             return; // nothing to do until baseUrl is set
         }
@@ -80,12 +80,15 @@ public class StockFetching {
                 DataPackOne dataPackOne = new DataPackOne();
                 dataPackOne.setCreatedDate(Date.valueOf(LocalDate.now()));
                 dataPackOne.setCreatedTime(Time.valueOf(LocalTime.now()));
-                dataPackOne.setTotalBuyQuantity(quote.getTotalBuy().toString());
-                dataPackOne.setTotalSellQuantity(quote.getTotalSell().toString());
-                dataPackOne.setDifferences(Double.valueOf(quote.getTotalBuy()) -
-                        Double.valueOf(quote.getTotalSell()));
+                dataPackOne.setTotalBuyQuantity(quote.getTotalBuy());
+                dataPackOne.setTotalSellQuantity(quote.getTotalSell());
+                dataPackOne.setDifferences(Double.parseDouble(quote.getTotalBuy()) -
+                        Double.parseDouble(quote.getTotalSell()));
                 dataPackOne.setPrice(quote.getLtp());
-               dataPackOne.setStockName(quote.getDisplaySymbol().toString());
+               dataPackOne.setStockName(quote.getDisplaySymbol());
+               dataPackOne.setOpen(quote.getOpenInt());
+               dataPackOne.setLow(quote.getOhlc().getLow());
+               dataPackOne.setHigh(quote.getOhlc().getHigh());
                dataPackOneRepository.save(dataPackOne);
             }
             if(Integer.valueOf(quote.getTotalSell())> 2*Integer.valueOf(quote.getTotalBuy())){
@@ -131,7 +134,8 @@ public class StockFetching {
                     .append(quote.getTotalBuy()).append("  ")
                     .append(quote.getTotalSell()).append("  ")
                     .append(quote.getOhlc().getLow()).append("  ")
-                    .append(quote.getOhlc().getHigh())
+                    .append(quote.getOhlc().getHigh()).append(" ")
+                    .append(quote.getLastTradedQuantity())
                     .append("<br>")
                     .append("\n")
                     .append("\n");
