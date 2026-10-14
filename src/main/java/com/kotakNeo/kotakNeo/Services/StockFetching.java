@@ -44,102 +44,112 @@ public class StockFetching {
     // Scheduled job runs every second, no arguments allowed
     @Scheduled(fixedRate = 15*60*1000)
     public void fetch() throws Exception{
-        if (baseUrl == null || baseUrl.isBlank()) {
-            return; // nothing to do until baseUrl is set
-        }
+      try {
+          if (baseUrl == null || baseUrl.isBlank()) {
+              return; // nothing to do until baseUrl is set
+          }
 
-        String url3 = baseUrl + "/script-details/1.0/quotes/neosymbol/"
-                + "nse_cm|1594,bse_cm|500209,"
-                + "nse_cm|11536,bse_cm|532540,"
-                + "nse_cm|3456,bse_cm|500570,"
-                + "nse_cm|759782,bse_cm|544569,"
-                + "nse_cm|881,bse_cm|500124,"
-                + "nse_cm|694,bse_cm|500087,"
-                + "nse_cm|5948,bse_cm|532218,"
-                + "nse_cm|3787,bse_cm|507685,"
-                + "nse_cm|8054,bse_cm|532652,"
-                + "nse_cm|10945,bse_cm|543596,"
-                + "nse_cm|5192,bse_cm|523323,"
-                + "nse_cm|1660,bse_cm|500875,"
-                + "nse_cm|3918,bse_cm|524816/all";
-        HttpHeaders newHeader = new HttpHeaders();
-       newHeader.set("Authorization", "78c450a5-ff8a-4f98-9077-680a8c0968ac");
-       HttpEntity<String> entity = new HttpEntity<>(newHeader);
+          String url3 = baseUrl + "/script-details/1.0/quotes/neosymbol/"
+                  + "nse_cm|1594,bse_cm|500209,"
+                  + "nse_cm|11536,bse_cm|532540,"
+                  + "nse_cm|3456,bse_cm|500570,"
+                  + "nse_cm|759782,bse_cm|544569,"
+                  + "nse_cm|881,bse_cm|500124,"
+                  + "nse_cm|694,bse_cm|500087,"
+                  + "nse_cm|5948,bse_cm|532218,"
+                  + "nse_cm|3787,bse_cm|507685,"
+                  + "nse_cm|8054,bse_cm|532652,"
+                  + "nse_cm|10945,bse_cm|543596,"
+                  + "nse_cm|5192,bse_cm|523323,"
+                  + "nse_cm|1660,bse_cm|500875,"
+                  + "nse_cm|3918,bse_cm|524816/all";
+          HttpHeaders newHeader = new HttpHeaders();
+          newHeader.set("Authorization", "78c450a5-ff8a-4f98-9077-680a8c0968ac");
+          HttpEntity<String> entity = new HttpEntity<>(newHeader);
 
-        ResponseEntity<StockQuote[]> response =
-                restTemplate.exchange(url3, HttpMethod.GET, entity, StockQuote[].class);
-        LocalTime marketClose = LocalTime.of(15, 30);
-        LocalTime marketStart = LocalTime.of(9, 15);
-        sb.setLength(0); // clear previous results
-        for (StockQuote quote : response.getBody()) {
+          ResponseEntity<StockQuote[]> response =
+                  restTemplate.exchange(url3, HttpMethod.GET, entity, StockQuote[].class);
+          LocalTime marketClose = LocalTime.of(15, 30);
+          LocalTime marketStart = LocalTime.of(9, 15);
+          sb.setLength(0); // clear previous results
+          for (StockQuote quote : response.getBody()) {
 //            if(quote.getDisplaySymbol().toString().equals("SOUTHBANK") && LocalTime.now().isBefore(marketClose)
 //                && LocalTime.now().isAfter(marketStart)){
-            if(LocalTime.now().isBefore(marketClose)
-                    && LocalTime.now().isAfter(marketStart)){
-                System.out.println("print DB "+ quote.getDisplaySymbol());
-                DataPackOne dataPackOne = new DataPackOne();
-                dataPackOne.setCreatedDate(Date.valueOf(LocalDate.now()));
-                dataPackOne.setCreatedTime(Time.valueOf(LocalTime.now()));
-                dataPackOne.setTotalBuyQuantity(quote.getTotalBuy());
-                dataPackOne.setTotalSellQuantity(quote.getTotalSell());
-                dataPackOne.setDifferences(Double.parseDouble(quote.getTotalBuy()) -
-                        Double.parseDouble(quote.getTotalSell()));
-                dataPackOne.setPrice(quote.getLtp());
-               dataPackOne.setStockName(quote.getDisplaySymbol());
-               dataPackOne.setOpen(quote.getOpenInt());
-               dataPackOne.setLow(quote.getOhlc().getLow());
-               dataPackOne.setHigh(quote.getOhlc().getHigh());
-               dataPackOneRepository.save(dataPackOne);
-            }
-            if(Integer.valueOf(quote.getTotalSell())> 2*Integer.valueOf(quote.getTotalBuy())){
-                int X = (Integer.valueOf(quote.getTotalSell())/Integer.valueOf(quote.getTotalBuy()));
-                sb.append(quote.getDisplaySymbol()).append("  need to sell "+ X+"x ");
-            } else if (2*Integer.valueOf(quote.getTotalSell()) < Integer.valueOf(quote.getTotalBuy())) {
-                int X = (Integer.valueOf(quote.getTotalBuy())/Integer.valueOf(quote.getTotalSell()));
-                sb.append(quote.getDisplaySymbol()).append("  need to buy "+X+"x ");
-            }
+              if (LocalTime.now().isBefore(marketClose)
+                      && LocalTime.now().isAfter(marketStart)) {
+                  System.out.println("print DB " + quote.getDisplaySymbol());
+                  DataPackOne dataPackOne = new DataPackOne();
+                  dataPackOne.setCreatedDate(Date.valueOf(LocalDate.now()));
+                  dataPackOne.setCreatedTime(Time.valueOf(LocalTime.now()));
+                  dataPackOne.setTotalBuyQuantity(quote.getTotalBuy());
+                  dataPackOne.setTotalSellQuantity(quote.getTotalSell());
+                  dataPackOne.setDifferences(Double.parseDouble(quote.getTotalBuy()) -
+                          Double.parseDouble(quote.getTotalSell()));
+                  dataPackOne.setPrice(quote.getLtp());
+                  dataPackOne.setStockName(quote.getDisplaySymbol());
+                  dataPackOne.setOpen(quote.getOpenInt());
+                  dataPackOne.setLow(quote.getOhlc().getLow());
+                  dataPackOne.setHigh(quote.getOhlc().getHigh());
+                  dataPackOneRepository.save(dataPackOne);
+              }
+              if (Integer.valueOf(quote.getTotalSell()) > 2 * Integer.valueOf(quote.getTotalBuy())) {
+                  int X = (Integer.valueOf(quote.getTotalSell()) / Integer.valueOf(quote.getTotalBuy()));
+                  sb.append(quote.getDisplaySymbol()).append("  need to sell " + X + "x ");
+              } else if (2 * Integer.valueOf(quote.getTotalSell()) < Integer.valueOf(quote.getTotalBuy())) {
+                  int X = (Integer.valueOf(quote.getTotalBuy()) / Integer.valueOf(quote.getTotalSell()));
+                  sb.append(quote.getDisplaySymbol()).append("  need to buy " + X + "x ");
+              }
 
-            RestTemplate restTemplate = new RestTemplate();
+              RestTemplate restTemplate = new RestTemplate();
 
-            // Example path variables
-            String stockName = quote.getDisplaySymbol().toString();
-            double differences = (Double.parseDouble(quote.getTotalBuy()) -
-                    Double.parseDouble(quote.getTotalSell()));
-            int buyQty = Integer.parseInt(quote.getTotalBuy());
-            int sellQty = Integer.parseInt(quote.getTotalSell());
-
-            // Build URL with path variables
-            String url = String.format(
-                    "http://localhost:5000/predict/%s/%.2f/%d/%d",
-                    stockName, differences, buyQty, sellQty
+              // Example path variables
+              String stockName = quote.getDisplaySymbol().toString();
+              double differences = (Double.parseDouble(quote.getTotalBuy()) -
+                      Double.parseDouble(quote.getTotalSell()));
+              int buyQty = Integer.parseInt(quote.getTotalBuy());
+              int sellQty = Integer.parseInt(quote.getTotalSell());
+              float open = Float.parseFloat(quote.getOpenInt());
+              float low = Float.parseFloat(quote.getOhlc().getLow());
+              float high = Float.parseFloat(quote.getOhlc().getHigh());
+              Float avgResult = dataPackOneRepository.findBycreatedDateAvg(quote.getDisplaySymbol(), Date.valueOf(LocalDate.now()));
+              float avg_difference = (avgResult != null) ? avgResult : 0.0f;
+              System.out.println(avg_difference+" "+open+" "+low+" "+high);
+             String url = String.format(
+                    "http://localhost:5000/predict/%s/%.2f/%d/%d/%.2f/%.2f/%.2f/%.2f",
+                    stockName, differences, buyQty, sellQty, open, low, high, avg_difference
             );
 
 
-            PredictionResponse predictionResponse =
-                    restTemplate.getForObject(url, PredictionResponse.class);
-            GapWithPredictionAndActualPrice gapWithPredictionAndActualPrice = new GapWithPredictionAndActualPrice();
-            gapWithPredictionAndActualPrice.setPrice(quote.getLtp());
-            gapWithPredictionAndActualPrice.setPredicted_price(predictionResponse.getPredicted_price());
-            gapWithPredictionAndActualPrice.setStock_name(quote.getDisplaySymbol());
-            gapWithPredictionAndActualPrice.setCreatedDate(Date.valueOf(LocalDate.now()));
-            gapWithPredictionAndActualPrice.setCreatedTime(Time.valueOf(LocalTime.now()));
-            if(LocalTime.now().isBefore(marketClose)
-                    && LocalTime.now().isAfter(marketStart)) {
-                gapWithPredictionAndActualPriceRepository.save(gapWithPredictionAndActualPrice);
-            }
-            assert predictionResponse != null;
-            sb.append(quote.getDisplaySymbol()).append("  ")
-                    .append(quote.getLtp()).append("  ")
-                    .append(predictionResponse.getPredicted_price()).append("  ")
-                    .append(quote.getTotalBuy()).append("  ")
-                    .append(quote.getTotalSell()).append("  ")
-                    .append(quote.getOhlc().getLow()).append("  ")
-                    .append(quote.getOhlc().getHigh()).append(" ")
-                    .append(quote.getLastTradedQuantity())
-                    .append("<br>")
-                    .append("\n")
-                    .append("\n");
-        }
+
+              PredictionResponse predictionResponse =
+                      restTemplate.getForObject(url, PredictionResponse.class);
+              GapWithPredictionAndActualPrice gapWithPredictionAndActualPrice = new GapWithPredictionAndActualPrice();
+              gapWithPredictionAndActualPrice.setPrice(quote.getLtp());
+              gapWithPredictionAndActualPrice.setPredicted_price(predictionResponse.getPredicted_price());
+              gapWithPredictionAndActualPrice.setStock_name(quote.getDisplaySymbol());
+              gapWithPredictionAndActualPrice.setCreatedDate(Date.valueOf(LocalDate.now()));
+              gapWithPredictionAndActualPrice.setCreatedTime(Time.valueOf(LocalTime.now()));
+              if (LocalTime.now().isBefore(marketClose)
+                      && LocalTime.now().isAfter(marketStart)) {
+                  gapWithPredictionAndActualPriceRepository.save(gapWithPredictionAndActualPrice);
+              }
+              assert predictionResponse != null;
+              sb.append(quote.getDisplaySymbol()).append("  ")
+                      .append(quote.getLtp()).append("  ")
+                      .append(predictionResponse.getPredicted_price()).append("  ")
+                      .append(quote.getTotalBuy()).append("  ")
+                      .append(quote.getTotalSell()).append("  ")
+                      .append(quote.getOhlc().getLow()).append("  ")
+                      .append(quote.getOhlc().getHigh()).append(" ")
+                      .append(quote.getLastTradedQuantity())
+                      .append("<br>")
+                      .append("\n")
+                      .append("\n");
+          }
+      }catch (Exception e){
+          System.out.println(e.getCause());
+          throw new Exception();
+      }
     }
 }
 

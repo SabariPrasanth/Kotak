@@ -74,7 +74,7 @@ public class LoginController {
     }
 
     @GetMapping("/mylist")
-    public void mylist(@RequestParam(required = false) String baseUrl, HttpServletResponse httpServletResponse) throws IOException {
+    public void mylist(@RequestParam(required = false) String baseUrl, HttpServletResponse httpServletResponse) throws Exception {
            if(baseUrl == null|| baseUrl.isBlank() || baseUrl.isEmpty())
                baseUrl = "https://e22.kotaksecurities.com";
             stockFetching.callFetchStock(baseUrl);
