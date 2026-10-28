@@ -114,22 +114,23 @@ public class StockFetching {
               Float avgResult = dataPackOneRepository.findBycreatedDateAvg(quote.getDisplaySymbol(), Date.valueOf(LocalDate.now()));
               float avg_difference = (avgResult != null) ? avgResult : 0.0f;
               System.out.println(avg_difference+" "+open+" "+low+" "+high);
+              float price = Float.parseFloat(quote.getLtp());
              String url = String.format(
-                    "http://localhost:5000/predict/%s/%.2f/%d/%d/%.2f/%.2f/%.2f/%.2f",
-                    stockName, differences, buyQty, sellQty, open, low, high, avg_difference
+                    "http://localhost:5000/predict/%s/%.2f/%d/%d/%.2f/%.2f/%.2f/%.2f/%.2f",
+                    stockName, differences, buyQty, sellQty, open, low, high, avg_difference, price
             );
 
 
 
-              PredictionResponse predictionResponse =
-                      restTemplate.getForObject(url, PredictionResponse.class);
-              GapWithPredictionAndActualPrice gapWithPredictionAndActualPrice = new GapWithPredictionAndActualPrice();
-              gapWithPredictionAndActualPrice.setPrice(quote.getLtp());
-              gapWithPredictionAndActualPrice.setPredicted_price(predictionResponse.getPredicted_price());
-              gapWithPredictionAndActualPrice.setStock_name(quote.getDisplaySymbol());
-              gapWithPredictionAndActualPrice.setCreatedDate(Date.valueOf(LocalDate.now()));
-              gapWithPredictionAndActualPrice.setCreatedTime(Time.valueOf(LocalTime.now()));
-              if (LocalTime.now().isBefore(marketClose)
+             PredictionResponse predictionResponse =
+                       restTemplate.getForObject(url, PredictionResponse.class);
+             GapWithPredictionAndActualPrice gapWithPredictionAndActualPrice = new GapWithPredictionAndActualPrice();
+	     gapWithPredictionAndActualPrice.setPrice(quote.getLtp());
+             gapWithPredictionAndActualPrice.setPredicted_price(predictionResponse.getPredicted_price());
+             gapWithPredictionAndActualPrice.setStock_name(quote.getDisplaySymbol());
+             gapWithPredictionAndActualPrice.setCreatedDate(Date.valueOf(LocalDate.now()));
+             gapWithPredictionAndActualPrice.setCreatedTime(Time.valueOf(LocalTime.now()));
+             if (LocalTime.now().isBefore(marketClose)
                       && LocalTime.now().isAfter(marketStart)) {
                   gapWithPredictionAndActualPriceRepository.save(gapWithPredictionAndActualPrice);
               }
